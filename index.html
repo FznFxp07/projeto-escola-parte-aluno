@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Aluno</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, select, button { margin-bottom: 10px; display: block; }
+    img { max-width: 150px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Cadastro de Aluno</h1>
+  <form id="formAluno">
+    <input type="text" id="nome" placeholder="Nome do aluno" required><br>
+
+    <label for="nascimento">Data de Nascimento:</label>
+    <input type="date" id="nascimento" required><br>
+
+    <label for="turma">Turma:</label>
+    <select id="turma" required>
+      <option value="6A">6A</option>
+      <option value="6B">6B</option>
+      <option value="6C">6C</option>
+      <option value="6D">6D</option>
+      <option value="6E">6E</option>
+    </select><br>
+
+    <label for="foto">Foto do Aluno:</label>
+    <input type="file" id="foto" accept="image/*" capture="environment"><br>
+    <img id="preview" src="#" alt="Prévia da Foto" style="display: none;"/><br>
+
+    <button type="submit">Cadastrar Aluno</button>
+  </form>
+
+  <h2>Alunos Cadastrados:</h2>
+  <ul id="listaAlunos"></ul>
+
+  <script>
+    const form = document.getElementById("formAluno");
+    const lista = document.getElementById("listaAlunos");
+    const preview = document.getElementById("preview");
+
+    let alunos = JSON.parse(localStorage.getItem("alunos")) || [];
+
+    function atualizarLista() {
+      lista.innerHTML = "";
+      alunos.forEach((aluno, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${aluno.nome}</strong> (${aluno.turma}, nasc: ${aluno.nascimento})<br>
+          <img src="${aluno.foto}" width="100"><br><br>
+        `;
+        lista.appendChild(li);
+      });
+    }
+
+    document.getElementById("foto").addEventListener("change", function() {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const nome = document.getElementById("nome").value.trim();
+      const nascimento = document.getElementById("nascimento").value;
+      const turma = document.getElementById("turma").value;
+      const fotoInput = document.getElementById("foto");
+
+      if (!nome || !nascimento || !turma || !fotoInput.files[0]) {
+        alert("Preencha todos os campos e adicione uma foto.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const novoAluno = {
+          nome,
+          nascimento,
+          turma,
+          foto: event.target.result
+        };
+
+        alunos.push(novoAluno);
+        localStorage.setItem("alunos", JSON.stringify(alunos));
+        form.reset();
+        preview.style.display = "none";
+        atualizarLista();
+        alert("Aluno cadastrado com sucesso!");
+      };
+      reader.readAsDataURL(fotoInput.files[0]);
+    });
+
+    atualizarLista();
+  </script>
+</body>
+</html>
